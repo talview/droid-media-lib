@@ -95,6 +95,8 @@ public class TalviewVideoImpl implements TalviewVideo {
 
     @Override
     public File stopRecording() {
+        if (!isRecording)
+            return null;
         mediaRecorder.stop();
         isRecording = false;
         mediaRecorder.release();

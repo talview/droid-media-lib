@@ -1,6 +1,7 @@
 package com.talview.media.video;
 
 import android.hardware.Camera;
+import android.media.MediaRecorder;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -15,6 +16,7 @@ public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.
     /**
      * opens the configured camera(front/rear), if you are not sure if front camera exists,
      * call the {@code isFrontCameraAvailable} function.
+     *
      * @throws IOException
      */
     void openCamera() throws IOException;
