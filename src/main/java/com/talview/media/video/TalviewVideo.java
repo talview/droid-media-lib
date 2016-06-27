@@ -1,5 +1,6 @@
 package com.talview.media.video;
 
+import android.content.Context;
 import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.view.SurfaceHolder;
@@ -42,4 +43,10 @@ public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.
     void setCameraPreviewSurface(SurfaceView cameraPreviewSurface);
 
     void startPreviewWithFaceDetection();
+
+    boolean checkForMic(Context context);
+
+    long getFreeSpace(Context context);
+
+    boolean checkForFrontFacingCamera(Context context);
 }

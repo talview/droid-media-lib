@@ -1,10 +1,13 @@
 package com.talview.media.video;
 
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.os.Environment;
+import android.os.StatFs;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -69,6 +72,28 @@ public class TalviewVideoImpl implements TalviewVideo {
         setPreviewToCamera();
         startPreview();
         startFaceDetection();
+    }
+
+    @Override
+    public boolean checkForMic(Context context) {
+        PackageManager pm = context.getPackageManager();
+        try {
+            return pm.hasSystemFeature(PackageManager.FEATURE_MICROPHONE);
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    @Override
+    public long getFreeSpace(Context context) {
+        StatFs stat = new StatFs(Environment.getExternalStorageDirectory().getPath());
+        stat.restat(Environment.getExternalStorageDirectory().getPath());
+        return (long) stat.getBlockSize() * (long) stat.getAvailableBlocks();
+    }
+
+    @Override
+    public boolean checkForFrontFacingCamera(Context context) {
+        return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT);
     }
 
     @Override
