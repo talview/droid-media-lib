@@ -33,6 +33,7 @@ public class TalviewVideoImpl implements TalviewVideo {
     private boolean isPlaying = false;
     private boolean isCameraOpen = false;
     private boolean isCameraUnlocked = true;
+    private boolean isFaceDetection = false;
 
     public TalviewVideoImpl(Configuration configuration) {
         this.configuration = configuration;
@@ -41,14 +42,17 @@ public class TalviewVideoImpl implements TalviewVideo {
 
     @Override
     public void setCameraPreviewSurface(SurfaceView cameraPreviewSurface) {
+        if (this.cameraPreviewSurface != null) {
+            return;
+        }
         this.cameraPreviewSurface = cameraPreviewSurface;
         this.surfaceHolder = cameraPreviewSurface.getHolder();
         surfaceHolder.addCallback(this);
         surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
-    @Override
-    public void openCamera() throws IOException {
+
+    private void openCamera() throws IOException {
         if (cameraPreviewSurface == null) {
             throw new NullPointerException("cameraPreviewSurface == null");
         }
@@ -62,13 +66,17 @@ public class TalviewVideoImpl implements TalviewVideo {
     }
 
     @Override
-    public void startPreviewWithFaceDetection() {
+    public void startCameraPreview() throws IOException {
         if (surfaceHolder.getSurface() == null) {
             return;
         }
+        if (camera != null) {
+            stopFaceDetection();
+            stopPreview();
+            releaseCamera();
+        }
+        openCamera();
         setFaceDetectionListenerToCamera();
-        stopFaceDetection();
-        stopPreview();
         setPreviewToCamera();
         startPreview();
         startFaceDetection();
@@ -99,16 +107,29 @@ public class TalviewVideoImpl implements TalviewVideo {
     @Override
     public void startRecording(File outputFile) throws IOException {
         initializeRecorder();
-        camera.unlock();
-        isCameraUnlocked = true;
+        unlockCamera();
         mediaRecorder.setOutputFile(outputFile.getAbsolutePath());
         mediaRecorder.prepare();
         mediaRecorder.start();
-        isRecording = true;
         this.outputFile = outputFile;
+        isRecording = true;
     }
 
-    @Override
+    private void lockCamera() {
+        if (camera != null) {
+            camera.lock();
+            isCameraUnlocked = false;
+        }
+    }
+
+    private void unlockCamera() {
+        if (camera != null) {
+            camera.unlock();
+            isCameraUnlocked = true;
+        }
+    }
+
+    /*@Override
     public void resumeRecoding(File outputFile) throws IOException {
         initializeRecorder();
         mediaRecorder.setOutputFile(outputFile.getAbsolutePath());
@@ -116,22 +137,35 @@ public class TalviewVideoImpl implements TalviewVideo {
         mediaRecorder.start();
         isRecording = true;
         this.outputFile = outputFile;
+    }*/
+
+    @Override
+    public boolean isRecording() {
+        return isRecording;
     }
 
     @Override
     public File stopRecording() {
         if (!isRecording)
             return null;
-        mediaRecorder.stop();
-        isRecording = false;
+        try {
+            mediaRecorder.stop();
+        } catch (IllegalStateException iEX) {
+            mediaRecorder.release();
+            mediaRecorder = null;
+            lockCamera();
+            isRecording = false;
+            return null;
+        }
         mediaRecorder.release();
-//        mediaRecorder.setPreviewDisplay(null);
+        mediaRecorder.setPreviewDisplay(null);
         mediaRecorder = null;
+        lockCamera();
+        isRecording = false;
         return this.outputFile;
     }
 
-    @Override
-    public void releaseCamera() {
+    private void releaseCamera() {
         if (camera != null) {
             camera.release();
             camera = null;
@@ -139,12 +173,12 @@ public class TalviewVideoImpl implements TalviewVideo {
         isCameraOpen = false;
     }
 
-    @Override
+    /*@Override
     public File pauseRecording() {
         mediaRecorder.stop();
         isRecording = false;
         return this.outputFile;
-    }
+    }*/
 
     private void initializeRecorder() {
         if (camera == null) {
@@ -264,6 +298,7 @@ public class TalviewVideoImpl implements TalviewVideo {
     @Override
     public void setFaceDetectionListener(Camera.FaceDetectionListener listener) {
         this.faceDetectionListener = listener;
+        this.isFaceDetection = true;
     }
 
     private void openFrontCamera() throws IOException {
@@ -384,7 +419,6 @@ public class TalviewVideoImpl implements TalviewVideo {
     }
 
     private void startFaceDetection() {
-        stopFaceDetection();
         if (faceDetectionListener != null & camera != null) {
             camera.startFaceDetection();
         }
@@ -405,7 +439,7 @@ public class TalviewVideoImpl implements TalviewVideo {
             return;
         }
         //surface has been created
-        setFaceDetectionListenerToCamera();
+//        setFaceDetectionListenerToCamera();
     }
 
     @Override

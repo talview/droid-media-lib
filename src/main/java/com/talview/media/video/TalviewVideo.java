@@ -20,17 +20,26 @@ public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.
      *
      * @throws IOException
      */
-    void openCamera() throws IOException;
+//    void openCamera() throws IOException;
+    // first set camera preview.
+    void setCameraPreviewSurface(SurfaceView cameraPreviewSurface);
 
+    // set facedetection listener if needed
     void setFaceDetectionListener(Camera.FaceDetectionListener listener);
 
+    // start preview first
+    void startCameraPreview() throws IOException;
+
+    // then start recording
     void startRecording(File outputFile) throws IOException;
 
-    void resumeRecoding(File outputFile) throws IOException;
+//    void resumeRecoding(File outputFile) throws IOException;
+
+    boolean isRecording();
 
     File stopRecording();
 
-    File pauseRecording();
+//    File pauseRecording();
 
     void prepareAndStartPlaying(
             final File fileToPlay, final MediaPlayerCallback mediaPlayerCallback, SurfaceHolder display);
@@ -38,11 +47,9 @@ public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.
 
     double getAudioAmplitude();
 
-    void releaseCamera();
+//    void releaseCamera();
 
-    void setCameraPreviewSurface(SurfaceView cameraPreviewSurface);
-
-    void startPreviewWithFaceDetection();
+//    void startPreviewWithFaceDetection() throws IOException;
 
     boolean checkForMic(Context context);
 
