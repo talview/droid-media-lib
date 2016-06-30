@@ -209,7 +209,7 @@ public class TalviewVideoImpl implements TalviewVideo {
     @Override
     public void prepareAndStartPlaying(final File fileToPlay,
                                        final MediaPlayerCallback mediaPlayerCallback, final SurfaceHolder display) {
-        if (fileToPlay.length() <= 0) {
+        if (fileToPlay == null || fileToPlay.length() <= 0) {
             mediaPlayerCallback.onError(new MediaPlayerException(MediaPlayerException.ERROR_UNABLE_TO_READ_FILE));
             return;
         }
@@ -260,10 +260,6 @@ public class TalviewVideoImpl implements TalviewVideo {
         }
         player.prepareAsync();
     }
-    /*public void setSoundMeter(SoundMeter soundMeter) {
-        soundMeter.setMediaRecorder(mediaRecorder);
-        soundMeter.start();
-    }*/
 
     @Override
     public double getAudioAmplitude() {
@@ -351,9 +347,11 @@ public class TalviewVideoImpl implements TalviewVideo {
 
     @Override
     public void close() throws IOException {
-        releaseCamera();
+        stopRecording();
         releaseRecorder();
         releasePlayer();
+        stopPreview();
+        releaseCamera();
     }
 
     public void releaseRecorder() {
