@@ -37,7 +37,7 @@ public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.
 
     boolean isRecording();
 
-    File stopRecording();
+    File stopRecording() throws IOException;
 
 //    File pauseRecording();
 

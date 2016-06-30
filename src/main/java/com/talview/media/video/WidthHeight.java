@@ -49,6 +49,11 @@ public class WidthHeight {
     }
 
     @Override
+    public String toString() {
+        return "width = " + width + " height = " + height;
+    }
+
+    @Override
     public int hashCode() {
         int result = (int) (width ^ (width >>> 32));
         result = 31 * result + (int) (height ^ (height >>> 32));
