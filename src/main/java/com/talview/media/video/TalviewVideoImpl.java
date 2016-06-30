@@ -128,6 +128,35 @@ public class TalviewVideoImpl implements TalviewVideo {
 
     @Override
     public void startRecording(File outputFile) throws IOException {
+        if (cameraPreviewSurfaceCreated) {
+            _startRecording(outputFile);
+        } else {
+            this.outputFile = outputFile;
+            surfaceHolder.addCallback(new SurfaceHolder.Callback() {
+                @Override
+                public void surfaceCreated(SurfaceHolder holder) {
+                    try {
+                        _startRecording(TalviewVideoImpl.this.outputFile);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    holder.removeCallback(this);
+                }
+
+                @Override
+                public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+                }
+
+                @Override
+                public void surfaceDestroyed(SurfaceHolder holder) {
+
+                }
+            });
+        }
+    }
+
+    private void _startRecording(File outputFile) throws IOException {
         initializeRecorder();
         Log.v("TalviewVideo", "Video: " + videoWidthHeight.toString());
         unlockCamera();
@@ -216,7 +245,7 @@ public class TalviewVideoImpl implements TalviewVideo {
                 }
             }
         });
-//        mediaRecorder.setPreviewDisplay(cameraPreviewSurface.getHolder().getSurface());
+        mediaRecorder.setPreviewDisplay(cameraPreviewSurface.getHolder().getSurface());
     }
 
     @Override
