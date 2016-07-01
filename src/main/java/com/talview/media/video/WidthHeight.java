@@ -28,8 +28,8 @@ public class WidthHeight {
         this.height = height;
     }
 
-    public boolean isGreaterThan(WidthHeight that) {
-        return that.width * that.height > this.width * this.height;
+    public boolean isGreaterThan(WidthHeight other) {
+        return other.width * other.height > this.width * this.height;
     }
 
     public long getArea() {
@@ -41,10 +41,10 @@ public class WidthHeight {
         if (this == o) return true;
         if (!(o instanceof WidthHeight)) return false;
 
-        WidthHeight that = (WidthHeight) o;
+        WidthHeight other = (WidthHeight) o;
 
-        if (width != that.width) return false;
-        return height == that.height;
+        if (width != other.width) return false;
+        return height == other.height;
 
     }
 
