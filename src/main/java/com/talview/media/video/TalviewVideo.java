@@ -56,4 +56,6 @@ public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.
     long getFreeSpace(Context context);
 
     boolean checkForFrontFacingCamera(Context context);
+
+    void destroy();
 }

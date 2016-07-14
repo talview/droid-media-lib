@@ -35,7 +35,9 @@ public class TalviewVideoImpl implements TalviewVideo {
     private boolean isCameraOpen = false;
     private boolean isCameraUnlocked = true;
     private boolean isFaceDetection = false;
+    private boolean faceDetectionRunning = false;
     private boolean cameraPreviewSurfaceCreated = false;
+    private boolean previewStarted = false;
 
     public TalviewVideoImpl(Configuration configuration) {
         this.configuration = configuration;
@@ -93,12 +95,10 @@ public class TalviewVideoImpl implements TalviewVideo {
 
                 @Override
                 public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
                 }
 
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
-
                 }
             });
         }
@@ -396,6 +396,16 @@ public class TalviewVideoImpl implements TalviewVideo {
         releaseCamera();
     }
 
+    @Override
+    public void destroy() {
+        try {
+            this.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.cameraPreviewSurface.getHolder().removeCallback(this);
+    }
+
     public void releaseRecorder() {
         if (mediaRecorder != null) {
             mediaRecorder.reset();
@@ -442,6 +452,7 @@ public class TalviewVideoImpl implements TalviewVideo {
     private void stopFaceDetection() {
         if (camera != null && faceDetectionListener != null) {
             camera.stopFaceDetection();
+            faceDetectionRunning = false;
         }
     }
 
@@ -449,6 +460,7 @@ public class TalviewVideoImpl implements TalviewVideo {
         if (camera != null) {
             try {
                 camera.stopPreview();
+                previewStarted = false;
             } catch (Exception e) {
                 // ignore: tried to stop a non-existent preview
             }
@@ -456,19 +468,22 @@ public class TalviewVideoImpl implements TalviewVideo {
     }
 
     private void startPreview() {
-        if (camera != null) {
+        if (camera != null && !previewStarted) {
             camera.startPreview();
+            previewStarted = true;
         }
     }
 
     private void startFaceDetection() {
-        if (faceDetectionListener != null & camera != null) {
+        if (faceDetectionListener != null & camera != null && !faceDetectionRunning) {
             try {
                 camera.startFaceDetection();
+                faceDetectionRunning = true;
             } catch (IllegalArgumentException iEx) {
                 // face detection not supported.
                 camera.setFaceDetectionListener(null);
                 faceDetectionListener = null;
+                faceDetectionRunning = false;
             }
         }
     }
@@ -491,9 +506,9 @@ public class TalviewVideoImpl implements TalviewVideo {
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         cameraPreviewSurfaceCreated = false;
-        surfaceHolder.removeCallback(this);
+//        surfaceHolder.removeCallback(this);
         if (camera != null) {
-            camera.stopPreview();
+            stopPreview();
         }
         Log.v("cameraSurface", "Surface destroyed");
     }
