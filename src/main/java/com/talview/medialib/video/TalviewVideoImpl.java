@@ -12,7 +12,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.talview.media.ManufacturerUtil;
+import com.talview.medialib.ManufacturerUtil;
 import com.talview.medialib.config.Configuration;
 
 import java.io.File;
