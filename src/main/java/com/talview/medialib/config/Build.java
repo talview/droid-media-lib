@@ -1,4 +1,4 @@
-package com.talview.media.config;
+package com.talview.medialib.config;
 
 /**
  * Created by talview23 on 17/3/16.

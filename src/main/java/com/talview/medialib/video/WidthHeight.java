@@ -1,4 +1,4 @@
-package com.talview.media.video;
+package com.talview.medialib.video;
 
 /**
  * Created by talview23 on 15/3/16.
@@ -34,6 +34,10 @@ public class WidthHeight {
 
     public long getArea() {
         return this.width * this.height;
+    }
+
+    public float getAspectRatio() {
+        return width / height;
     }
 
     @Override

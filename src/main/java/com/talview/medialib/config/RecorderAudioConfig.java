@@ -1,4 +1,4 @@
-package com.talview.media.config;
+package com.talview.medialib.config;
 
 public interface RecorderAudioConfig {
     /**

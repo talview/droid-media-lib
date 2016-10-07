@@ -1,7 +1,7 @@
-package com.talview.media.config;
+package com.talview.medialib.config;
 
-import com.talview.media.video.TalviewVideo;
-import com.talview.media.video.WidthHeight;
+import com.talview.medialib.video.TalviewVideo;
+import com.talview.medialib.video.WidthHeight;
 
 public class BuildConfiguration implements Encoding, Build<Configuration>, RecorderVideoConfig,
         RecorderAudioConfig {

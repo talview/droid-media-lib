@@ -1,4 +1,4 @@
-package com.talview.media.video;
+package com.talview.medialib.video;
 
 /**
  * Created by talview23 on 22/3/16.

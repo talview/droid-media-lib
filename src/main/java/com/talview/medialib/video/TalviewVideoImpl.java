@@ -1,4 +1,4 @@
-package com.talview.media.video;
+package com.talview.medialib.video;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -12,10 +12,14 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.talview.media.config.Configuration;
+import com.talview.media.ManufacturerUtil;
+import com.talview.medialib.config.Configuration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
@@ -26,7 +30,6 @@ public class TalviewVideoImpl implements TalviewVideo {
     private SurfaceView cameraPreviewSurface;
     private Camera.FaceDetectionListener faceDetectionListener;
     private SurfaceHolder surfaceHolder;
-    private WidthHeight videoWidthHeight;
     private MediaRecorder mediaRecorder;
     private File outputFile;
     private MediaPlayer player;
@@ -66,8 +69,17 @@ public class TalviewVideoImpl implements TalviewVideo {
             openRearCamera();
         }
         configureCamera();
-        Log.v("TalviewCamera", "Preview: " + videoWidthHeight.toString());
         isCameraUnlocked = false;
+    }
+
+    @Override
+    public boolean isPreviewStarted() {
+        return previewStarted;
+    }
+
+    @Override
+    public boolean isCameraOpen() {
+        return isCameraOpen;
     }
 
     @Override
@@ -87,9 +99,14 @@ public class TalviewVideoImpl implements TalviewVideo {
             surfaceHolder.addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
-                    setPreviewToCamera();
-                    startPreview();
-                    startFaceDetection();
+                    // https://fabric.io/talview/android/apps/com.talview.candidate/issues/57ce7c300aeb16625bc7f5d5
+                    if (!cameraPreviewSurfaceCreated)
+                        cameraPreviewSurfaceCreated = true;
+                    try {
+                        startCameraPreview();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     holder.removeCallback(this);
                 }
 
@@ -157,14 +174,40 @@ public class TalviewVideoImpl implements TalviewVideo {
     }
 
     private void _startRecording(File outputFile) throws IOException {
+        if (!isCameraUnlocked) {
+            if (camera != null) {
+                try {
+                    unlockCamera();
+                } catch (RuntimeException cEx) {
+                    releaseCamera();
+                    openCamera();
+                    unlockCamera();
+                }
+            } else {
+                openCamera();
+                unlockCamera();
+            }
+        }
+        if (previewStarted)
+            stopPreview();
         initializeRecorder();
-        Log.v("TalviewVideo", "Video: " + videoWidthHeight.toString());
-        unlockCamera();
+        Log.v("TalviewVideo", "Video/Preview: Width = " + mVideoSize.width +
+                " Height = " + mVideoSize.height);
         mediaRecorder.setOutputFile(outputFile.getAbsolutePath());
+        // Apparently setPreviewDisplay must be called after setOutput file according
+        // to https://developer.android.com/guide/topics/media/camera.html#capture-video
+        mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
         mediaRecorder.prepare();
-        mediaRecorder.start();
-        this.outputFile = outputFile;
-        isRecording = true;
+        try {
+            // getting plenty of crashes on this line
+            mediaRecorder.start();
+            this.outputFile = outputFile;
+            isRecording = true;
+        } catch (Exception e) {
+            // catch exception and try to reset the recorder.
+            releaseRecorder();
+            _startRecording(outputFile);
+        }
     }
 
     private void lockCamera() {
@@ -205,10 +248,33 @@ public class TalviewVideoImpl implements TalviewVideo {
 
     private void releaseCamera() {
         if (camera != null) {
+            try {
+                camera.lock();
+            } catch (Throwable ignored) {
+            }
             camera.release();
             camera = null;
         }
         isCameraOpen = false;
+    }
+
+    private void configureMediaRecorder(MediaRecorder recorder) {
+        if (recorder == null) throw new NullPointerException("Recorder is null");
+        recorder.setCamera(camera);
+        recorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+        recorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+        recorder.setOrientationHint(configuration.getRecorderVideoOrientation());
+
+        recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        recorder.setVideoFrameRate(configuration.getVideoFrameRate());
+        recorder.setVideoSize(mVideoSize.width, mVideoSize.height);
+        recorder.setVideoEncodingBitRate(configuration.getVideoEncodingBitRate());
+        recorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+
+        recorder.setAudioEncodingBitRate(configuration.getAudioEncodingBitRate());
+        recorder.setAudioChannels(configuration.getAudioChannels());
+        recorder.setAudioSamplingRate(configuration.getAudioSamplingRate());
+        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
     }
 
     private void initializeRecorder() {
@@ -219,19 +285,7 @@ public class TalviewVideoImpl implements TalviewVideo {
             releaseRecorder();
         }
         mediaRecorder = new MediaRecorder();
-        mediaRecorder.setCamera(camera);
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mediaRecorder.setOrientationHint(configuration.getRecorderVideoOrientation());
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        mediaRecorder.setVideoSize(videoWidthHeight.getWidth(), videoWidthHeight.getHeight());
-        mediaRecorder.setVideoFrameRate(configuration.getVideoFrameRate());
-        mediaRecorder.setVideoEncodingBitRate(configuration.getVideoEncodingBitRate());
-        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        mediaRecorder.setAudioEncodingBitRate(configuration.getAudioEncodingBitRate());
-        mediaRecorder.setAudioChannels(configuration.getAudioChannels());
-        mediaRecorder.setAudioSamplingRate(configuration.getAudioSamplingRate());
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+        configureMediaRecorder(mediaRecorder);
         mediaRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
             @Override
             public void onError(MediaRecorder mr, int what, int extra) {
@@ -245,7 +299,9 @@ public class TalviewVideoImpl implements TalviewVideo {
                 }
             }
         });
-        mediaRecorder.setPreviewDisplay(cameraPreviewSurface.getHolder().getSurface());
+        // Not setting the preview display here, but set it before starting the recording. We only
+        // init and configure the recorder here.
+//        mediaRecorder.setPreviewDisplay(cameraPreviewSurface.getHolder().getSurface());
     }
 
     @Override
@@ -365,11 +421,17 @@ public class TalviewVideoImpl implements TalviewVideo {
         for (int i = 0, size = Camera.getNumberOfCameras(); i < size; i++) {
             Camera.getCameraInfo(i, cameraInfo);
             if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                return Camera.open(i);
+                try {
+                    return Camera.open(i);
+                } catch (RuntimeException rEx) {
+                    return null;
+                }
             }
         }
         return null;
     }
+
+    private Camera.Size mVideoSize, mPreviewSize;
 
     private void configureCamera() {
         camera.setErrorCallback(this);
@@ -377,14 +439,71 @@ public class TalviewVideoImpl implements TalviewVideo {
         camParams.set("contrast", 1);
         camParams.set("exposure", "auto");
         List<Camera.Size> videoSizes = camParams.getSupportedVideoSizes();
-        if (videoSizes != null && !videoSizes.isEmpty()) {
-            videoWidthHeight = getOptimalPreviewSize(videoSizes);
+        if (videoSizes == null || videoSizes.isEmpty())
+            videoSizes = camParams.getSupportedPreviewSizes();
+        mVideoSize = chooseVideoSize(videoSizes);
+        mPreviewSize = chooseOptimalSize(camParams.getSupportedPreviewSizes(), mVideoSize);
+        if (ManufacturerUtil.isSamsungGalaxyS3()) {
+            camParams.setPreviewSize(ManufacturerUtil.SAMSUNG_S3_PREVIEW_WIDTH,
+                    ManufacturerUtil.SAMSUNG_S3_PREVIEW_HEIGHT);
         } else {
-            videoWidthHeight = getOptimalPreviewSize(camParams.getSupportedPreviewSizes());
+            camParams.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
         }
-        camParams.setPreviewSize(videoWidthHeight.getWidth(), videoWidthHeight.getHeight());
-        camera.setParameters(camParams);
+        try {
+            camera.setParameters(camParams);
+        } catch (RuntimeException rEx) {
+            Log.e("Camera", rEx.getMessage(), rEx);
+            // todo: propagate it up the call stack.
+        }
         camera.setDisplayOrientation(configuration.getDisplayOrientation());
+    }
+
+    private Camera.Size chooseOptimalSize(List<Camera.Size> choices, Camera.Size aspectRatio) {
+        WidthHeight desiredWidthHeight = configuration.getDesiredVideoWidthHeight();
+        int width = desiredWidthHeight.getWidth();
+        int height = desiredWidthHeight.getHeight();
+        // Collect the supported resolutions that are at least as big as the preview Surface
+        List<Camera.Size> bigEnough = new ArrayList<>();
+        int w = aspectRatio.width;
+        int h = aspectRatio.height;
+        for (Camera.Size option : choices) {
+            if (option.height == width * h / w &&
+                    option.width >= width && option.height >= height) {
+                bigEnough.add(option);
+            }
+        }
+        // Pick the smallest of those, assuming we found any
+        if (bigEnough.size() > 0) {
+            return Collections.min(bigEnough, new CompareSizesByArea());
+        } else {
+//            LOG(CameraFragment.class, "Couldn't find any suitable preview size");
+            return aspectRatio;
+        }
+    }
+
+    public int videoPreferredHeight() {
+        return configuration.getDesiredVideoWidthHeight().getHeight();
+    }
+
+    public int videoPreferredAspect() {
+        return Math.round(configuration.getDesiredVideoWidthHeight().getAspectRatio());
+    }
+
+    private Camera.Size chooseVideoSize(List<Camera.Size> choices) {
+        Camera.Size backupSize = null;
+        int preferredHeight = videoPreferredHeight();
+        int preferredAspect = videoPreferredAspect();
+        for (Camera.Size size : choices) {
+            if (size.height <= preferredHeight) {
+                if (size.width == size.height * preferredAspect)
+                    return size;
+                else
+                    backupSize = size;
+            }
+        }
+        if (backupSize != null) return backupSize;
+//        LOG(CameraFragment.class, "Couldn't find any suitable video size");
+        return choices.get(choices.size() - 1);
     }
 
     @Override
@@ -406,7 +525,7 @@ public class TalviewVideoImpl implements TalviewVideo {
         this.cameraPreviewSurface.getHolder().removeCallback(this);
     }
 
-    public void releaseRecorder() {
+    private void releaseRecorder() {
         if (mediaRecorder != null) {
             mediaRecorder.reset();
             mediaRecorder.release();
@@ -450,8 +569,12 @@ public class TalviewVideoImpl implements TalviewVideo {
     }
 
     private void stopFaceDetection() {
-        if (camera != null && faceDetectionListener != null) {
-            camera.stopFaceDetection();
+        if (camera != null && faceDetectionListener != null && faceDetectionRunning) {
+            try {
+                camera.stopFaceDetection();
+            } catch (RuntimeException rEx) {
+                //todo: add crashlytics log here.
+            }
             faceDetectionRunning = false;
         }
     }
@@ -551,5 +674,14 @@ public class TalviewVideoImpl implements TalviewVideo {
     public boolean isFrontCameraAvailable() {
         return cameraPreviewSurface.getContext().getPackageManager()
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT);
+    }
+
+    static class CompareSizesByArea implements Comparator<Camera.Size> {
+        @Override
+        public int compare(Camera.Size lhs, Camera.Size rhs) {
+            // We cast here to ensure the multiplications won't overflow
+            return Long.signum((long) lhs.width * lhs.height -
+                    (long) rhs.width * rhs.height);
+        }
     }
 }

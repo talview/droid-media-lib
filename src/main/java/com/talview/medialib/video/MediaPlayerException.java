@@ -1,4 +1,4 @@
-package com.talview.media.video;
+package com.talview.medialib.video;
 
 
 public class MediaPlayerException extends Exception {

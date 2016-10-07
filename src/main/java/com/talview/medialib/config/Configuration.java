@@ -1,6 +1,6 @@
-package com.talview.media.config;
+package com.talview.medialib.config;
 
-import com.talview.media.video.WidthHeight;
+import com.talview.medialib.video.WidthHeight;
 
 public class Configuration {
     private WidthHeight desiredVideoWidthHeight;

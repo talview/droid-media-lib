@@ -1,8 +1,8 @@
-package com.talview.media;
+package com.talview.medialib;
 
-import com.talview.media.config.Configuration;
-import com.talview.media.video.TalviewVideo;
-import com.talview.media.video.TalviewVideoImpl;
+import com.talview.medialib.config.Configuration;
+import com.talview.medialib.video.TalviewVideo;
+import com.talview.medialib.video.TalviewVideoImpl;
 
 public class MediaModule {
     private Configuration config;
