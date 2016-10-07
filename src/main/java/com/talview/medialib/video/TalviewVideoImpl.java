@@ -1,5 +1,6 @@
 package com.talview.medialib.video;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
@@ -85,16 +86,19 @@ public class TalviewVideoImpl implements TalviewVideo {
     @Override
     public void startCameraPreview() throws IOException {
         if (camera != null) {
-            stopFaceDetection();
+            if (isFaceDetection)
+                stopFaceDetection();
             stopPreview();
             releaseCamera();
         }
         openCamera();
-        setFaceDetectionListenerToCamera();
+        if (isFaceDetection)
+            setFaceDetectionListenerToCamera();
         if (cameraPreviewSurfaceCreated) {
             setPreviewToCamera();
             startPreview();
-            startFaceDetection();
+            if (isFaceDetection)
+                startFaceDetection();
         } else {
             surfaceHolder.addCallback(new SurfaceHolder.Callback() {
                 @Override
@@ -390,6 +394,7 @@ public class TalviewVideoImpl implements TalviewVideo {
     }
 
     @Override
+    @TargetApi(14)
     public void setFaceDetectionListener(Camera.FaceDetectionListener listener) {
         this.faceDetectionListener = listener;
         this.isFaceDetection = true;
@@ -562,12 +567,14 @@ public class TalviewVideoImpl implements TalviewVideo {
             throw new RuntimeException("Failed to calculate optimal preview size");
     }
 
+    @TargetApi(14)
     private void setFaceDetectionListenerToCamera() {
         if (camera != null && faceDetectionListener != null) {
             camera.setFaceDetectionListener(faceDetectionListener);
         }
     }
 
+    @TargetApi(14)
     private void stopFaceDetection() {
         if (camera != null && faceDetectionListener != null && faceDetectionRunning) {
             try {
@@ -597,6 +604,7 @@ public class TalviewVideoImpl implements TalviewVideo {
         }
     }
 
+    @TargetApi(14)
     private void startFaceDetection() {
         if (faceDetectionListener != null & camera != null && !faceDetectionRunning) {
             try {
@@ -650,11 +658,13 @@ public class TalviewVideoImpl implements TalviewVideo {
         if (holder.isCreating())
             return;
         // stop preview before making changes
-        stopFaceDetection();
+        if (isFaceDetection)
+            stopFaceDetection();
         stopPreview();
         setPreviewToCamera();
         startPreview();
-        startFaceDetection();
+        if (isFaceDetection)
+            startFaceDetection();
         Log.v("cameraSurface", "Surface changed");
     }
 

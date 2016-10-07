@@ -1,5 +1,6 @@
 package com.talview.medialib.video;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.hardware.Camera;
 import android.view.SurfaceHolder;
@@ -17,6 +18,7 @@ public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.
     void setCameraPreviewSurface(SurfaceView cameraPreviewSurface);
 
     // set facedetection listener if needed
+    @TargetApi(14)
     void setFaceDetectionListener(Camera.FaceDetectionListener listener);
 
     // start preview first
@@ -35,8 +37,9 @@ public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.
      * Stops the media recorder, if recorder is currently recording, no matter if the action suceeds
      * or fails the media recorder is released in the process, hence perform this action in a background
      * thread with callbacks top not block your UI.
+     *
      * @return The recorded file.
-     * @throws IOException if no valid data was written into the file
+     * @throws IOException           if no valid data was written into the file
      * @throws IllegalStateException if called before start() was called.
      */
     File stopRecording() throws IOException;
