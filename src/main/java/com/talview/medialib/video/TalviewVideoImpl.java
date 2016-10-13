@@ -227,7 +227,7 @@ public class TalviewVideoImpl implements TalviewVideo {
         int previewSurfaceHeight = cameraPreviewSurface.getHeight();
         int previewSurfaceWidth = cameraPreviewSurface.getWidth();
         if (previewSurfaceHeight > previewSurfaceWidth) {
-            previewSurfaceWidth = previewSurfaceHeight * mVideoSize.width / mVideoSize.height;
+            previewSurfaceWidth = previewSurfaceHeight * mVideoSize.height / mVideoSize.width;
         } else {
             previewSurfaceHeight = previewSurfaceWidth * mVideoSize.width / mVideoSize.height;
         }
