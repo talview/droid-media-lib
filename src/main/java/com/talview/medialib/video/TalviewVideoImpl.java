@@ -96,13 +96,13 @@ public class TalviewVideoImpl implements TalviewVideo {
             releaseCamera();
         }
         openCamera();
+        if(isFaceDetection)
+            setFaceDetectionListenerToCamera();
         if (cameraPreviewSurfaceCreated) {
             setPreviewToCamera();
             startPreview();
             if (isFaceDetection) {
                 startFaceDetection();
-                if (faceDetectionRunning)
-                    setFaceDetectionListenerToCamera();
             }
         } else {
             surfaceHolder.addCallback(new SurfaceHolder.Callback() {
