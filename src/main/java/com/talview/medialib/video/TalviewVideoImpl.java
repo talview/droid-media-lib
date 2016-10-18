@@ -96,7 +96,7 @@ public class TalviewVideoImpl implements TalviewVideo {
             releaseCamera();
         }
         openCamera();
-        if(isFaceDetection)
+        if (isFaceDetection)
             setFaceDetectionListenerToCamera();
         if (cameraPreviewSurfaceCreated) {
             setPreviewToCamera();
@@ -155,14 +155,14 @@ public class TalviewVideoImpl implements TalviewVideo {
     @Override
     public void startRecording(File outputFile) throws IOException {
         if (cameraPreviewSurfaceCreated) {
-            _startRecording(outputFile);
+            _startRecording(outputFile, 0);
         } else {
             this.outputFile = outputFile;
             surfaceHolder.addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
                     try {
-                        _startRecording(TalviewVideoImpl.this.outputFile);
+                        _startRecording(TalviewVideoImpl.this.outputFile, 0);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -182,7 +182,7 @@ public class TalviewVideoImpl implements TalviewVideo {
         }
     }
 
-    private void _startRecording(File outputFile) throws IOException {
+    private void _startRecording(File outputFile, int retryLimiter) throws IOException {
         if (isFaceDetection)
             stopFaceDetection();
         if (!isCameraUnlocked) {
@@ -216,9 +216,13 @@ public class TalviewVideoImpl implements TalviewVideo {
             this.outputFile = outputFile;
             isRecording = true;
         } catch (Exception e) {
+            e.printStackTrace();
             // catch exception and try to reset the recorder.
             releaseRecorder();
-            _startRecording(outputFile);
+            if (retryLimiter > 3) {
+                throw e;
+            }
+            _startRecording(outputFile, retryLimiter + 1);
         }
     }
 
