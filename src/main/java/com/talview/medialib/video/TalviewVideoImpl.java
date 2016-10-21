@@ -46,10 +46,13 @@ public class TalviewVideoImpl implements TalviewVideo {
     private boolean previewStarted = false;
     @SuppressWarnings("FieldCanBeLocal")
     private Camera.Size mVideoSize, mPreviewSize;
+    private boolean isSetVideoSizeSupported = false;
+    private int initialFrameRate = 0;
 
     public TalviewVideoImpl(Configuration configuration) {
         this.configuration = configuration;
         this.whichCamera = configuration.getWhichCamera();
+        initialFrameRate = configuration.getVideoFrameRate();
     }
 
     @Override
@@ -215,6 +218,13 @@ public class TalviewVideoImpl implements TalviewVideo {
             mediaRecorder.start();
             this.outputFile = outputFile;
             isRecording = true;
+        } catch (RuntimeException rEx) {
+            rEx.printStackTrace();
+            releaseRecorder();
+            if (configuration.getVideoFrameRate() < initialFrameRate + 40) {
+                configuration.setVideoFrameRate(configuration.getVideoFrameRate() + 1);
+                _startRecording(outputFile, retryLimiter);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             // catch exception and try to reset the recorder.
@@ -297,7 +307,11 @@ public class TalviewVideoImpl implements TalviewVideo {
 
         recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         recorder.setVideoFrameRate(configuration.getVideoFrameRate());
-        recorder.setVideoSize(mVideoSize.width, mVideoSize.height);
+        Log.v("TalviewVideo", "Video frame rate set = " + configuration.getVideoFrameRate());
+        if (isSetVideoSizeSupported) {
+            recorder.setVideoSize(mVideoSize.width, mVideoSize.height);
+            Log.v("TalviewVideo", "recorder.setVideoSize() called");
+        }
         recorder.setVideoEncodingBitRate(configuration.getVideoEncodingBitRate());
         recorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
 
@@ -467,8 +481,13 @@ public class TalviewVideoImpl implements TalviewVideo {
         camParams.set("contrast", 1);
         camParams.set("exposure", "auto");
         List<Camera.Size> videoSizes = camParams.getSupportedVideoSizes();
-        if (videoSizes == null || videoSizes.isEmpty())
+        if (videoSizes == null || videoSizes.isEmpty()) {
+            Log.v("TalviewVideo", "getSupportedVideoSizes() is empty or null");
+            isSetVideoSizeSupported = false;
             videoSizes = camParams.getSupportedPreviewSizes();
+        } else {
+            isSetVideoSizeSupported = true;
+        }
         mVideoSize = chooseVideoSize(videoSizes);
         mPreviewSize = chooseOptimalSize(camParams.getSupportedPreviewSizes(), mVideoSize);
         if (ManufacturerUtil.isSamsungGalaxyS3()) {

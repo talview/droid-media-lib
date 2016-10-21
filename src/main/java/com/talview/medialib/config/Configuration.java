@@ -41,6 +41,10 @@ public class Configuration {
         return videoFrameRate;
     }
 
+    public void setVideoFrameRate(int videoFrameRate) {
+        this.videoFrameRate = videoFrameRate;
+    }
+
     public int getVideoEncodingBitRate() {
         return videoEncodingBitRate;
     }
