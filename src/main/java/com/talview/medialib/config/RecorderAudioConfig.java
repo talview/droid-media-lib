@@ -10,5 +10,10 @@ public interface RecorderAudioConfig {
      */
     RecorderAudioConfig setAudioChannels(int channels);
 
+    /**
+     * Set the sampling rate for the audio recording.
+     * @param samplingRate the sampling rate for the audio recording.
+     * @return a reference to itself for chaining functions.
+     */
     Build<Configuration> setAudioSamplingRate(int samplingRate);
 }

@@ -44,6 +44,13 @@ public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.
      */
     File stopRecording() throws IOException;
 
+    /**
+     * Note: This feature is in beta
+     * Use this method to asynchronously play an mp4 video on the surface attached to the SurfaceHolder.
+     * @param fileToPlay The mp4 video file to play
+     * @param mediaPlayerCallback A callback instance to let you know when the player started finished etc.
+     * @param display The holder of the surface on which to render the video.
+     */
     void prepareAndStartPlaying(
             final File fileToPlay, final MediaPlayerCallback mediaPlayerCallback, SurfaceHolder display);
 

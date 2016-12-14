@@ -1,6 +1,7 @@
 package com.talview.medialib;
 
 import com.talview.medialib.config.Configuration;
+import com.talview.medialib.video.MediaModule;
 import com.talview.medialib.video.TalviewVideo;
 
 /**

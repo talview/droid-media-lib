@@ -2,6 +2,9 @@ package com.talview.medialib.config;
 
 import com.talview.medialib.video.WidthHeight;
 
+/**
+ * A class modelling the configuration parameters of the camera and media recorder.
+ */
 public class Configuration {
     private WidthHeight desiredVideoWidthHeight;
     private int whichCamera;

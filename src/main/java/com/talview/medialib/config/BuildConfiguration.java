@@ -3,7 +3,10 @@ package com.talview.medialib.config;
 import com.talview.medialib.video.TalviewVideo;
 import com.talview.medialib.video.WidthHeight;
 
-public class BuildConfiguration implements Encoding, Build<Configuration>, RecorderVideoConfig,
+/**
+ * A class that is used a builder for the configuration class.
+ */
+class BuildConfiguration implements Encoding, Build<Configuration>, RecorderVideoConfig,
         RecorderAudioConfig {
     private static final int DEFAULT_VIDEO_FRAME_RATE = 8;
     private static final int DEFAULT_CAMERA = TalviewVideo.FRONT_CAMERA;
@@ -31,39 +34,39 @@ public class BuildConfiguration implements Encoding, Build<Configuration>, Recor
         return this;
     }
 
-    public int getDisplayOrientation() {
+    int getDisplayOrientation() {
         return displayOrientation;
     }
 
-    public int getWhichCamera() {
+    int getWhichCamera() {
         return whichCamera;
     }
 
-    public int getRecorderVideoOrientation() {
+    int getRecorderVideoOrientation() {
         return recorderVideoOrientation;
     }
 
-    public int getVideoFrameRate() {
+    int getVideoFrameRate() {
         return videoFrameRate;
     }
 
-    public int getVideoEncodingBitRate() {
+    int getVideoEncodingBitRate() {
         return videoEncodingBitRate;
     }
 
-    public int getAudioEncodingBitRate() {
+    int getAudioEncodingBitRate() {
         return audioEncodingBitRate;
     }
 
-    public int getAudioChannels() {
+    int getAudioChannels() {
         return audioChannels;
     }
 
-    public int getAudioSamplingRate() {
+    int getAudioSamplingRate() {
         return audioSamplingRate;
     }
 
-    public WidthHeight getDesiredVideoWidthHeight() {
+    WidthHeight getDesiredVideoWidthHeight() {
         return desiredVideoWidthHeight;
     }
 

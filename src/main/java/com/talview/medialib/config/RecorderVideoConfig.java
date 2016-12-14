@@ -29,5 +29,10 @@ public interface RecorderVideoConfig {
      */
     RecorderVideoConfig previewDisplayOrientation(int orientation);
 
+    /**
+     * Set the frame rate for the video being recorded.
+     * @param frameRate the frame rate of the recorded video.
+     * @return a reference to itself for chaining functions.
+     */
     RecorderAudioConfig setVideoFrameRate(int frameRate);
 }

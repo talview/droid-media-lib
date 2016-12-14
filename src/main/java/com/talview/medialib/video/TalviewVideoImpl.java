@@ -25,7 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public class TalviewVideoImpl implements TalviewVideo {
+class TalviewVideoImpl implements TalviewVideo {
     private Camera camera;
     private Configuration configuration;
     private int whichCamera;
@@ -49,7 +49,7 @@ public class TalviewVideoImpl implements TalviewVideo {
     private boolean isSetVideoSizeSupported = false;
     private int initialFrameRate = 0;
 
-    public TalviewVideoImpl(Configuration configuration) {
+    TalviewVideoImpl(Configuration configuration) {
         this.configuration = configuration;
         this.whichCamera = configuration.getWhichCamera();
         initialFrameRate = configuration.getVideoFrameRate();
