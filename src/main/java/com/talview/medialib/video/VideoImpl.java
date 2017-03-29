@@ -25,7 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-class TalviewVideoImpl implements TalviewVideo {
+class VideoImpl implements Video {
     private Camera camera;
     private Configuration configuration;
     private int whichCamera;
@@ -49,7 +49,7 @@ class TalviewVideoImpl implements TalviewVideo {
     private boolean isSetVideoSizeSupported = false;
     private int initialFrameRate = 0;
 
-    TalviewVideoImpl(Configuration configuration) {
+    VideoImpl(Configuration configuration) {
         this.configuration = configuration;
         this.whichCamera = configuration.getWhichCamera();
         initialFrameRate = configuration.getVideoFrameRate();
@@ -165,7 +165,7 @@ class TalviewVideoImpl implements TalviewVideo {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
                     try {
-                        _startRecording(TalviewVideoImpl.this.outputFile, 0);
+                        _startRecording(VideoImpl.this.outputFile, 0);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -337,7 +337,7 @@ class TalviewVideoImpl implements TalviewVideo {
                 releaseRecorder();
                 initializeRecorder();
                 try {
-                    startRecording(TalviewVideoImpl.this.outputFile);
+                    startRecording(VideoImpl.this.outputFile);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

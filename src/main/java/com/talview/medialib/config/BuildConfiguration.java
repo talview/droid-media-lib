@@ -1,6 +1,6 @@
 package com.talview.medialib.config;
 
-import com.talview.medialib.video.TalviewVideo;
+import com.talview.medialib.video.Video;
 import com.talview.medialib.video.WidthHeight;
 
 /**
@@ -9,7 +9,7 @@ import com.talview.medialib.video.WidthHeight;
 class BuildConfiguration implements Encoding, Build<Configuration>, RecorderVideoConfig,
         RecorderAudioConfig {
     private static final int DEFAULT_VIDEO_FRAME_RATE = 8;
-    private static final int DEFAULT_CAMERA = TalviewVideo.FRONT_CAMERA;
+    private static final int DEFAULT_CAMERA = Video.FRONT_CAMERA;
     private static final int DEFAULT_RECORDED_VIDEO_ORIENTATION = 270;
     private static final int DEFAULT_DISPLAY_ORIENTATION = 90;
 

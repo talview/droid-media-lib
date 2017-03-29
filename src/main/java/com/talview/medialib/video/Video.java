@@ -10,7 +10,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
-public interface TalviewVideo extends Closeable, SurfaceHolder.Callback, Camera.ErrorCallback {
+public interface Video extends Closeable, SurfaceHolder.Callback, Camera.ErrorCallback {
     int FRONT_CAMERA = 42455;
     int REAR_CAMERA = 42456;
 
